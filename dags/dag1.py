@@ -7,6 +7,11 @@ from dag1_operator import (
 )
 
 dag_id = "dag1"
+import os
+
+dag_folder = os.path.dirname(os.path.abspath(__file__))
+shell_file = os.path.join(dag_folder, '../principal.sh')
+
 
 
 def dummy_callable(action):
@@ -31,7 +36,7 @@ def create_dag(id):
 
         t1 = BashOperator(
             task_id='train_models',
-            bash_command='../principal.sh',
+            bash_command=shell_file,
         )
 
         finish = PythonOperator(
