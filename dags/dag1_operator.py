@@ -3,7 +3,7 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
 
-@log
+
 class Dag1Operator(BaseOperator):
 
     @apply_defaults
