@@ -36,7 +36,7 @@ def create_dag(id):
 
         t1 = Dag1Operator(
             task_id='train_models',
-            bash_command=shell_file,
+            dag=dag,
         )
 
         finish = PythonOperator(
