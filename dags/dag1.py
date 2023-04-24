@@ -34,7 +34,7 @@ def create_dag(id):
             dag=dag
         )
 
-        t1 = BashOperator(
+        t1 = Dag1Operator(
             task_id='train_models',
             bash_command=shell_file,
         )
