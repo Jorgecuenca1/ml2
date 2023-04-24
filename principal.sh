@@ -1,4 +1,5 @@
 #!/bin/bash
+ECHO "HOLA ACA INGRESO"
 rm -r weather-dataset-rattle-package.zip 
 rm -r weatherAUS.csv 
 kaggle datasets download -d jsphyg/weather-dataset-rattle-package --force
