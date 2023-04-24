@@ -2,7 +2,6 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime
 
-from dags.dags_config import Config
 from dag1_operator import (
     Dag1Operator
 )

@@ -12,17 +12,15 @@ services:
   db_scheduler:
     container_name: osv_scheduler_db
     image: postgres:9.6
-    ports:
-      - "5432:5432"
-    expose:
-      - 5432
     volumes:
       - local_db_scheduler_data:/var/lib/postgresql/data
       - local_db_scheduler_data_backups:/backups
     environment:
       - POSTGRES_USER=postgres
+      - POSTGRES_HOST=db_scheduler
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgres
+      - POSTGRES_PORT= 5432
     logging:
       options:
         max-size: 10m
@@ -36,11 +34,15 @@ services:
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_DB=postgres
       - AIRFLOW=airflow
+      - AIRFLOW_WEBSERVER_USER=ml2
+      - AIRFLOW_WEBSERVER_EMAIL=jorgecuenca.unity@gmail.com
+      - AIRFLOW_WEBSERVER_PASS=ml2password
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST=db_scheduler
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+      - POSTGRES_PORT= 5432
     logging:
       options:
         max-size: 10m
@@ -54,7 +56,6 @@ services:
       - ./../dags:/usr/local/airflow/dags
       - ./../modules:/usr/local/airflow/modules
       - ./../logs:/usr/local/airflow/logs
-      - ./../downloads/:/home/seluser/Downloads
     healthcheck:
       test: [ "CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]" ]
       interval: 30s
