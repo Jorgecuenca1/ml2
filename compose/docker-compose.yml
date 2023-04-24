@@ -1,6 +1,9 @@
 version: "3.7"
-
-volumes:  
+networks:
+  default:
+    external:
+      name: osv-proxy_osv_network
+volumes:
   local_db_scheduler_data: {}
   local_db_scheduler_data_backups: {}
 
@@ -9,11 +12,17 @@ services:
   db_scheduler:
     container_name: osv_scheduler_db
     image: postgres:9.6
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
     volumes:
       - local_db_scheduler_data:/var/lib/postgresql/data
       - local_db_scheduler_data_backups:/backups
-    env_file:
-      - ./../.envs/.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
     logging:
       options:
         max-size: 10m
@@ -26,9 +35,12 @@ services:
       context: ./../
       dockerfile: Dockerfile.dev
     restart: unless-stopped
-    env_file:
-      - ./../.envs/.airflow
-      - ./../.envs/.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_DB=postgres
+      - AIRFLOW=airflow
     logging:
       options:
         max-size: 10m
