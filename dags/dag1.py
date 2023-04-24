@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime
-
+from airflow.operators.bash import BashOperator
 from dag1_operator import (
     Dag1Operator
 )
@@ -18,7 +18,7 @@ def create_dag(id):
             dag_id=id,
             description=f"Requests for Login and Dag1",
             schedule_interval="*/10 * * * *",
-            start_date=datetime(2023, 4, 23),
+            start_date=datetime(2023, 4, 24),
             catchup=False,
             is_paused_upon_creation=False
     ) as dag:
@@ -28,10 +28,11 @@ def create_dag(id):
             op_kwargs={"action": "starting"},
             dag=dag
         )
-
-        dag1 = Dag1Operator(
-            task_id="getting_and_dag1",
-            dag=dag
+        print(dag.folder)
+        t1 = BashOperator(
+            task_id='train_models',
+            bash_command='bash "../principal.sh"',
+            cwd=dag.folder
         )
 
         finish = PythonOperator(
@@ -41,7 +42,7 @@ def create_dag(id):
             dag=dag
         )
 
-        start >> dag1 >> finish
+        start >> t1 >> finish
 
     return dag
 
