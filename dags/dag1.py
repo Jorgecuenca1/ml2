@@ -32,7 +32,6 @@ def create_dag(id):
         t1 = BashOperator(
             task_id='train_models',
             bash_command='../principal.sh',
-            cwd=dag.folder
         )
 
         finish = PythonOperator(
