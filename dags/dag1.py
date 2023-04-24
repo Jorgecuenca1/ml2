@@ -1,23 +1,25 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime
-from dags.etl.sispro.dag6.sispro_operator_infant_mortality_rate import (
-    SisproInfantMortalityRateDag6
+
+from dags.dags_config import Config
+from dag1_operator import (
+    Dag1Operator
 )
 
-dag_id = "sispro_ts_morta_infantil_dag6"
+dag_id = "dag1"
 
 
 def dummy_callable(action):
-    return f"{datetime.now()}: {action} load infant mortality rate for API!"
+    return f"{datetime.now()}: {action} login and Dag1!"
 
 
 def create_dag(id):
     with DAG(
             dag_id=id,
-            description=f"Requests for load infant mortality rate for API",
-            schedule_interval="0 0 1 */6 *",
-            start_date=datetime(2022, 4, 4),
+            description=f"Requests for Login and Dag1",
+            schedule_interval="*/10 * * * *",
+            start_date=datetime(2023, 4, 23),
             catchup=False,
             is_paused_upon_creation=False
     ) as dag:
@@ -28,8 +30,8 @@ def create_dag(id):
             dag=dag
         )
 
-        sispro = SisproInfantMortalityRateDag6(
-            task_id="infant_mortality_rate_dag6",
+        dag1 = Dag1Operator(
+            task_id="getting_and_dag1",
             dag=dag
         )
 
@@ -40,7 +42,7 @@ def create_dag(id):
             dag=dag
         )
 
-        start >> sispro >> finish
+        start >> dag1 >> finish
 
     return dag
 
