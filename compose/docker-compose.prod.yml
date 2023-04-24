@@ -1,0 +1,81 @@
+version: "3.7"
+
+networks:
+  default:
+    external:
+      name: osv-proxy_osv_network
+volumes:  
+  prod_selenium_data: {}
+  prod_redis_cache_data: {}
+  prod_db_scheduler_data: {}
+  prod_db_scheduler_data_backups: {}
+
+services:
+  redis:
+    container_name: osv_cache
+    image: redis:alpine
+    command: redis-server --appendonly yes # --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379"
+    volumes:
+      - prod_redis_cache_data:/data
+    restart: unless-stopped
+
+  selenium:
+    image: selenium/standalone-chrome
+    container_name: osv_selenium_webdriver
+    ports:
+      - "4444"
+    env_file:
+      - ./../.envs/.selenium
+    volumes:
+      - ./../downloads/:/home/seluser/Downloads
+    restart: unless-stopped
+
+  db_scheduler:
+    container_name: osv_scheduler_db
+    image: postgres:9.6
+    volumes:
+      - prod_db_scheduler_data:/var/lib/postgresql/data
+      - prod_db_scheduler_data_backups:/backups
+    env_file:
+      - ./../.envs/.db
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    restart: unless-stopped
+
+  airflow:
+    container_name: osv_scheduler
+    image: osv_scheduler_airflow
+    build:
+      context: ./../
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./../.envs/.airflow
+      - ./../.envs/.db
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    command: [ "webserver" ]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./../config/airflow.cfg:/usr/local/airflow/airflow.cfg
+      - ./../config/create_default_user.py:/usr/local/airflow/create_default_user.py
+      - ./../dags:/usr/local/airflow/dags
+      - ./../modules:/usr/local/airflow/modules
+      - ./../logs:/usr/local/airflow/logs
+      - ./../downloads/:/home/seluser/Downloads
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    depends_on:
+      - db_scheduler
+      - redis
+      - selenium

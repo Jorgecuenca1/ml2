@@ -1,0 +1,52 @@
+version: "3.7"
+
+volumes:  
+  local_db_scheduler_data: {}
+  local_db_scheduler_data_backups: {}
+
+services:
+
+  db_scheduler:
+    container_name: osv_scheduler_db
+    image: postgres:9.6
+    volumes:
+      - local_db_scheduler_data:/var/lib/postgresql/data
+      - local_db_scheduler_data_backups:/backups
+    env_file:
+      - ./../.envs/.db
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  airflow:
+    container_name: osv_scheduler
+    image: osv_scheduler_airflow
+    build:
+      context: ./../
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    env_file:
+      - ./../.envs/.airflow
+      - ./../.envs/.db
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    command: [ "webserver" ]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./../config/airflow.cfg:/usr/local/airflow/airflow.cfg
+      - ./../config/create_default_user.py:/usr/local/airflow/create_default_user.py
+      - ./../dags:/usr/local/airflow/dags
+      - ./../modules:/usr/local/airflow/modules
+      - ./../logs:/usr/local/airflow/logs
+      - ./../downloads/:/home/seluser/Downloads
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    depends_on:
+      - db_scheduler
